@@ -58,6 +58,8 @@ export default class MapControl extends cc.Component {
     }
     //生成地图
     generateMap(){
+        console.log(this.MapObj);
+        
         let currentIndex = 0;
         for(let x=0;x<this.HorizontalMap;x++)
         {  
