@@ -32,7 +32,7 @@ export default class MapControl extends cc.Component {
     //横向个数
     HorizontalMap:number= 7;
 
-    startPos:number[] = [80,660]
+    startPos:number[] = [180,1100]
 
     start () {
         this.NowDate = this.getNowDate();
@@ -58,8 +58,6 @@ export default class MapControl extends cc.Component {
     }
     //生成地图
     generateMap(){
-        console.log(this.MapObj);
-        
         let currentIndex = 0;
         for(let x=0;x<this.HorizontalMap;x++)
         {  
