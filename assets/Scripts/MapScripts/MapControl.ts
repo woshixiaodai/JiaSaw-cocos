@@ -98,5 +98,7 @@ export default class MapControl extends cc.Component {
             }
         }
     }
-    // update (dt) {}
+    update (dt) {
+        
+    }
 }

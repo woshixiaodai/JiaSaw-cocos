@@ -1,7 +1,7 @@
 
 
 const {ccclass, property} = cc._decorator;
-
+import BlockManager from './BlockManager'
 @ccclass
 export default class BlockControl extends cc.Component {
 
@@ -10,84 +10,110 @@ export default class BlockControl extends cc.Component {
     holdClick = false;       //用来检测点击
     // doubleTimeEclipse = 0;   //用来检测双击
     hold_one_click = 0;      //用来检测单击
-    // LIFE-CYCLE CALLBACKS:
+    
+    isMoving = false;   //检测是否在移动中
+
+    //记录初始位置
+    currentX:number = 0;
+    currentY:number = 0;
 
     onLoad () {
+        cc.director.getPhysicsManager().enabled = true; //开启物理引擎
         this.node.parent.is3DNode = true;
-        this.node.on(cc.Node.EventType.TOUCH_START,function(event){
+        this.currentX =  this.node.parent.position.x;
+        this.currentY =  this.node.parent.position.y;
+        this.node.on(cc.Node.EventType.TOUCH_START,(event)=>{
             this.holdClick = true;
-            this.holdTimeEclipse = 0;            
+            this.holdTimeEclipse = 0;
+            this.currentX =  this.node.parent.position.x;
+            this.currentY =  this.node.parent.position.y;
         },this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE,(e)=>{
+            this.isMoving = true;
             this.move(e);
-            //让该拼图离开scrollView
-            this.node.parent.setParent(cc.director.getScene());
         },this)
-        let self = this;
-        this.node.on(cc.Node.EventType.TOUCH_END,function(event){           
+
+        this.node.on(cc.Node.EventType.TOUCH_END,(e)=>{
             this.holdClick=false;
-            if(this.holdTimeEclipse>=30)
+            //这里检测是没有移动还是移动了位置,再由下一个判断是否进入长按
+            if(this.node.parent.position.x!=this.currentX&&this.node.parent.position.y!=this.currentY){
+                console.log('moved');
+                this.isMoving=true;           
+            }
+            //没有移动位置则不进入长按状态
+            if(this.holdTimeEclipse>=30 && !this.isMoving)
             {                
-                this.btn_status('long');       
+                this.btn_status(e,'long');       
             }
             else
             {                
-                this.btn_status('short');                
+                this.btn_status(e,'short'); 
             }    
             //开始记录时间
             this.holdTimeEclipse=0;
-            // this.setPos(e);
-            console.log(self.node.parent);
-
+            this.isMoving = false;
         },this);
     }
 
     //判断状态
-    btn_status(status){
+    btn_status(e,status){
         if(status == 'short')
         {
             console.log(this.hold_one_click)
             this.hold_one_click ++;
             setTimeout(() => {
+                //单击&双击都关闭菜单
                 if(this.hold_one_click == 1)
                 {
                     console.log('short');
                     this.hold_one_click = 0;
+                    this.close_menu()
                 } 
-                // else if(this.hold_one_click == 2)
-                // {
-                //     console.log('double');
-                //     this.hold_one_click = 0;
-                // }              
+                else if(this.hold_one_click == 2)
+                {
+                    console.log('double');
+                    this.hold_one_click = 0;
+                    this.close_menu();
+                }              
             }, 400);
-            
         }
         else
         {
             this.hold_one_click = 0;
             console.log('long');
-            // console.log(this.node.parent.children);
+            this.node.parent.setParent(cc.director.getScene());
+            let location = e.getLocation();
+            this.node.parent.setPosition(location.x-this.node.x,location.y-this.node.y); 
             this.show_menu();
         }
     }
 
+    total = 0;
     move(e){
+        //移动的时候让拼图块离开scrollView
+        this.node.parent.setParent(cc.director.getScene());
         let location = e.getLocation();
-        this.node.parent.setPosition(location);
+        // console.log('parent',this.node.parent.getPosition());
+        // console.log('finger',location);
+        //减去当前节点的位置，让父物体跟随鼠标
+        this.node.parent.setPosition(location.x-this.node.x,location.y-this.node.y);
+        // console.log(this.node.parent.position.x+100==cc.winSize.width);
+        // console.log(cc.winSize.width);
+        // if(this.node.parent.position.x+100==cc.winSize.width){
+        //     this.node.parent.children[this.node.parent.children.length-1].setPosition(this.node.parent.children[0].position.x-50,this.node.parent.children[0].position.y-120);
+        // }
+        // let res =  cc.director.getPhysicsManager().rayCast(this.node.getPosition(),cc.v2(this.node.x,this.node.y),cc.RayCastType.Closest);
+        // console.log(this.node.name);
+        this.checkMap();
     }
 
-    //离开屏幕设置位置 
-    setPos(e){
-        
-    }
-
-    //显示才菜单
+    //显示变化菜单
     show_menu(){
-        
-        let lastIndex = this.node.parent.children.length;
-        let Menu = this.node.parent.children[lastIndex-1];//获取菜单节点
-        console.log('show_menu');
-        if(Menu.name=='Menu'){
+        let Menu = cc.director.getScene().children[5].children[0];//获取菜单节点
+        console.log(Menu);
+        if(Menu){
+            console.log(Menu);
+            Menu.active=true;
             let count=0;
             for(let btn of Menu.children){
                 var clickEventHandler = new cc.Component.EventHandler();
@@ -99,29 +125,29 @@ export default class BlockControl extends cc.Component {
                 //指定执行函数
                 clickEventHandler.handler = "rotation";
                 //这里传递自定义的参数
-                clickEventHandler.customEventData = count.toString();
-                let btnEvents =  btn.getComponent(cc.Button)
+                clickEventHandler.customEventData = count+"";
+                let btnEvents =  btn.getComponent(cc.Button);
                 btnEvents.clickEvents[0]=clickEventHandler;
-                console.log(clickEventHandler.target);
-                console.log(btn.getComponent(cc.Button));
-                console.log(btn);
                 count++;
             }
-            Menu.setParent(cc.director.getScene());
-            Menu.setPosition(cc.director.getScene().x+400,cc.director.getScene().y+300);
+            Menu.setParent(cc.director.getScene().children[5]);
+            Menu.setPosition(150,-30);
+            console.log(Menu);
         }
     }
-
-    start () {
-        
+    //关闭菜单
+    close_menu(){
+        let Menu = cc.director.getScene().children[5].children[0];
+        Menu.active = false;
     }
 
-
+    //旋转物体
     rotation(_,angle:string){
         // let X = this.node.parent.eulerAngles.x;
         // let Y = this.node.parent.eulerAngles.y;
         // let Z = this.node.parent.eulerAngles.z;
         // console.log('old',X,Y,Z);
+        //通过子组件操作父组件旋转翻转
         switch (angle) {
             //逆时针90
             case "0":
@@ -132,34 +158,59 @@ export default class BlockControl extends cc.Component {
                 // this.node.parent.setPosition(newPos)
                 // this.node.parent.angle=this.node.parent.z+=90;
                 // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.eulerAngles.z+=90);
-                console.log(this.node.parent.eulerAngles.x);
-                console.log(this.node.parent.x);
-                this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.z+=90);
+                // console.log(this.node.parent.eulerAngles.x);
+                // console.log(this.node.parent.x);
+                // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.z+=90);
+                this.node.parent.angle+=90.0;
                 break;
             //逆时针180
             case "1":
-                // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.eulerAngles.z+=180);
-                this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.z+=180);
+                this.node.parent.angle+=180.0;
                 break;
             //水平镜像
             case "2":
-                // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y-=180,this.node.parent.eulerAngles.z)
-                this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y-=180,this.node.parent.z)
+                if(this.node.parent.angle%180==0 || this.node.parent.angle==0)
+                {
+                    
+                    this.node.parent.scaleX = - this.node.parent.scaleX;
+                }
+                else
+                {
+                    this.node.parent.scaleY = - this.node.parent.scaleY;
+                }
                 break;
             //垂直镜像                
             case "3":
                 // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x-=180,this.node.parent.eulerAngles.y,this.node.parent.eulerAngles.z)
-                this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x-=180,this.node.parent.eulerAngles.y,this.node.parent.z)
+                if(this.node.parent.angle%180==0 || this.node.parent.angle==0)
+                {
+                    this.node.parent.scaleY = - this.node.parent.scaleY;
+                }
+                else
+                {
+                    this.node.parent.scaleX = - this.node.parent.scaleX;
+                }
                 break;                
         }
-        let nX = this.node.parent.eulerAngles.x;
-        let nY = this.node.parent.eulerAngles.y;
-        let nZ = this.node.parent.eulerAngles.z;
-        console.log('newx',nX,nY,nZ);
     }
 
 
+
+    //检测地图
+    checkMap(){
+        for(let block of this.node.parent.children)
+        {
+           let res =  cc.director.getPhysicsManager().rayCast(block.getPosition(),cc.v2(block.x,block.y+10),cc.RayCastType.Closest);
+           console.log(res);
+        }
+    }
+
+    start () {
+        
+    }
+
     update (dt) {
+        //检测点击
         if(this.holdClick)
         {
             this.holdTimeEclipse++;
