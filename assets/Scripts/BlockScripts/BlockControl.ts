@@ -1,7 +1,8 @@
 
-
 const {ccclass, property} = cc._decorator;
 import BlockManager from './BlockManager'
+import MapControl from '../MapScripts/MapControl'
+import BlockContainer from './BlockContainer';
 @ccclass
 export default class BlockControl extends cc.Component {
 
@@ -16,17 +17,31 @@ export default class BlockControl extends cc.Component {
     //记录初始位置
     currentX:number = 0;
     currentY:number = 0;
-
+     offsetVec:cc.Vec2 = null;
+     
     onLoad () {
-        cc.director.getPhysicsManager().enabled = true; //开启物理引擎
+        //开启碰撞检测
+        cc.director.getCollisionManager().enabled = true;
+        this.addCollider();
         this.node.parent.is3DNode = true;
         this.currentX =  this.node.parent.position.x;
         this.currentY =  this.node.parent.position.y;
-        this.node.on(cc.Node.EventType.TOUCH_START,(event)=>{
+        this.node.on(cc.Node.EventType.TOUCH_START,(e)=>{
             this.holdClick = true;
             this.holdTimeEclipse = 0;
             this.currentX =  this.node.parent.position.x;
             this.currentY =  this.node.parent.position.y;
+            // console.log('blockx',this.node.x);
+            // console.log('blocky',this.node.y);
+            // console.log('containerx',this.node.parent.parent.x);
+            // console.log('containery',this.node.parent.parent.y);
+            // console.log('mousex',e.getLocation().x);
+            // console.log('mousey',e.getLocation().y);
+            //将一个点转换到节点 (局部) 坐标系，并加上锚点的坐标。 也就是说返回的坐标是相对于节点包围盒左下角的坐标。 
+            //将鼠标位置转换为这个父物体下得局部坐标作为偏移量
+            this.offsetVec=this.node.parent.parent.convertToNodeSpaceAR(e.getLocation());
+            
+            
         },this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE,(e)=>{
             this.isMoving = true;
@@ -52,7 +67,9 @@ export default class BlockControl extends cc.Component {
             //开始记录时间
             this.holdTimeEclipse=0;
             this.isMoving = false;
+            this.backStartPos();
         },this);
+       
     }
 
     //判断状态
@@ -73,7 +90,11 @@ export default class BlockControl extends cc.Component {
                 {
                     console.log('double');
                     this.hold_one_click = 0;
-                    this.close_menu();
+                    // this.close_menu();
+                    // this.node.parent.parent.setParent(cc.director.getScene())
+                    // let location = e.getLocation();
+                    // this.node.parent.parent.setPosition(location.x-this.offsetVec.x,location.y-this.offsetVec.y);
+                    this.show_menu();
                 }              
             }, 400);
         }
@@ -81,9 +102,16 @@ export default class BlockControl extends cc.Component {
         {
             this.hold_one_click = 0;
             console.log('long');
-            this.node.parent.setParent(cc.director.getScene());
-            let location = e.getLocation();
-            this.node.parent.setPosition(location.x-this.node.x,location.y-this.node.y); 
+            // this.node.parent.setParent(cc.director.getScene());
+            // let location = e.getLocation();
+            // if(this.node.parent.scaleX==1&&this.node.parent.scaleY==1)
+            // {
+            //     console.log('==1');
+            //     this.node.parent.setPosition(location.x-this.node.x,location.y-this.node.y); 
+            // }else{
+            //     console.log('!=1');
+            //     this.node.parent.setPosition(location.x+this.node.x,location.y+this.node.y);
+            // }
             this.show_menu();
         }
     }
@@ -91,20 +119,15 @@ export default class BlockControl extends cc.Component {
     total = 0;
     move(e){
         //移动的时候让拼图块离开scrollView
-        this.node.parent.setParent(cc.director.getScene());
+        this.node.parent.parent.setParent(cc.director.getScene());
         let location = e.getLocation();
         // console.log('parent',this.node.parent.getPosition());
         // console.log('finger',location);
         //减去当前节点的位置，让父物体跟随鼠标
-        this.node.parent.setPosition(location.x-this.node.x,location.y-this.node.y);
-        // console.log(this.node.parent.position.x+100==cc.winSize.width);
-        // console.log(cc.winSize.width);
-        // if(this.node.parent.position.x+100==cc.winSize.width){
-        //     this.node.parent.children[this.node.parent.children.length-1].setPosition(this.node.parent.children[0].position.x-50,this.node.parent.children[0].position.y-120);
-        // }
+        // console.log(this.node.parent.scaleX,this.node.parent.scaleY);
+        this.node.parent.parent.setPosition(location.x-this.offsetVec.x,location.y-this.offsetVec.y);
         // let res =  cc.director.getPhysicsManager().rayCast(this.node.getPosition(),cc.v2(this.node.x,this.node.y),cc.RayCastType.Closest);
         // console.log(this.node.name);
-        this.checkMap();
     }
 
     //显示变化菜单
@@ -171,7 +194,6 @@ export default class BlockControl extends cc.Component {
             case "2":
                 if(this.node.parent.angle%180==0 || this.node.parent.angle==0)
                 {
-                    
                     this.node.parent.scaleX = - this.node.parent.scaleX;
                 }
                 else
@@ -194,16 +216,27 @@ export default class BlockControl extends cc.Component {
         }
     }
 
-
-
     //检测地图
-    checkMap(){
+    addCollider(){
         for(let block of this.node.parent.children)
         {
-           let res =  cc.director.getPhysicsManager().rayCast(block.getPosition(),cc.v2(block.x,block.y+10),cc.RayCastType.Closest);
-           console.log(res);
+            block.addComponent(cc.BoxCollider);
         }
     }
+
+    onCollisionEnter(other){
+
+    }
+
+    //回到
+    backStartPos(){
+        this.node.parent.parent.setParent(cc.director.getScene().children[2].children[1].children[0]);
+        let originX = this.node.parent.parent.getComponent(BlockContainer).startPos[0][0];
+        let originY = this.node.parent.parent.getComponent(BlockContainer).startPos[0][1];
+        this.node.parent.parent.setPosition(originX,originY);
+    }
+
+
 
     start () {
         
@@ -214,9 +247,9 @@ export default class BlockControl extends cc.Component {
         if(this.holdClick)
         {
             this.holdTimeEclipse++;
-            if(this.holdTimeEclipse>120)//如果长按时间大于2s，则认为长按了2s
+            if(this.holdTimeEclipse>60)//如果长按时间大于2s，则认为长按了2s
             {
-                this.holdTimeEclipse=120;
+                this.holdTimeEclipse=60;
             }
         }
     }

@@ -9,7 +9,7 @@ const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class BlockContainer extends cc.Component {
-
+    
     startPos:[number,number,boolean][]=[];
 
     // LIFE-CYCLE CALLBACKS:
