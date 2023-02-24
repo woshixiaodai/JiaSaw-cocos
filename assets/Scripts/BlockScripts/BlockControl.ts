@@ -17,7 +17,10 @@ export default class BlockControl extends cc.Component {
     //记录初始位置
     currentX:number = 0;
     currentY:number = 0;
-     offsetVec:cc.Vec2 = null;
+    offsetVec:cc.Vec2 = null;
+
+    isUsed:boolean = false;
+
      
     onLoad () {
         //开启碰撞检测
@@ -27,16 +30,12 @@ export default class BlockControl extends cc.Component {
         this.currentX =  this.node.parent.position.x;
         this.currentY =  this.node.parent.position.y;
         this.node.on(cc.Node.EventType.TOUCH_START,(e)=>{
+            console.log('block',this.node.parent.parent.x,this.node.parent.parent.y);
+            
             this.holdClick = true;
             this.holdTimeEclipse = 0;
             this.currentX =  this.node.parent.position.x;
             this.currentY =  this.node.parent.position.y;
-            // console.log('blockx',this.node.x);
-            // console.log('blocky',this.node.y);
-            // console.log('containerx',this.node.parent.parent.x);
-            // console.log('containery',this.node.parent.parent.y);
-            // console.log('mousex',e.getLocation().x);
-            // console.log('mousey',e.getLocation().y);
             //将一个点转换到节点 (局部) 坐标系，并加上锚点的坐标。 也就是说返回的坐标是相对于节点包围盒左下角的坐标。 
             //将鼠标位置转换为这个父物体下得局部坐标作为偏移量
             this.offsetVec=this.node.parent.parent.convertToNodeSpaceAR(e.getLocation());
@@ -90,10 +89,6 @@ export default class BlockControl extends cc.Component {
                 {
                     console.log('double');
                     this.hold_one_click = 0;
-                    // this.close_menu();
-                    // this.node.parent.parent.setParent(cc.director.getScene())
-                    // let location = e.getLocation();
-                    // this.node.parent.parent.setPosition(location.x-this.offsetVec.x,location.y-this.offsetVec.y);
                     this.show_menu();
                 }              
             }, 400);
@@ -102,16 +97,6 @@ export default class BlockControl extends cc.Component {
         {
             this.hold_one_click = 0;
             console.log('long');
-            // this.node.parent.setParent(cc.director.getScene());
-            // let location = e.getLocation();
-            // if(this.node.parent.scaleX==1&&this.node.parent.scaleY==1)
-            // {
-            //     console.log('==1');
-            //     this.node.parent.setPosition(location.x-this.node.x,location.y-this.node.y); 
-            // }else{
-            //     console.log('!=1');
-            //     this.node.parent.setPosition(location.x+this.node.x,location.y+this.node.y);
-            // }
             this.show_menu();
         }
     }
@@ -166,24 +151,11 @@ export default class BlockControl extends cc.Component {
 
     //旋转物体
     rotation(_,angle:string){
-        // let X = this.node.parent.eulerAngles.x;
-        // let Y = this.node.parent.eulerAngles.y;
-        // let Z = this.node.parent.eulerAngles.z;
-        // console.log('old',X,Y,Z);
         //通过子组件操作父组件旋转翻转
         switch (angle) {
             //逆时针90
             case "0":
-                // let newPos = cc.v3(X,Y,Z+=90.0)
-                // let newPos = cc.v3(X,Y+=90.0,this.node.z)
-                // this.node.parent.eulerAngles = newPos;
-                // this.node.parent.rotation+=90.0;
-                // this.node.parent.setPosition(newPos)
-                // this.node.parent.angle=this.node.parent.z+=90;
-                // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.eulerAngles.z+=90);
-                // console.log(this.node.parent.eulerAngles.x);
-                // console.log(this.node.parent.x);
-                // this.node.parent.eulerAngles = cc.v3(this.node.parent.eulerAngles.x,this.node.parent.eulerAngles.y,this.node.parent.z+=90);
+               
                 this.node.parent.angle+=90.0;
                 break;
             //逆时针180
@@ -199,6 +171,7 @@ export default class BlockControl extends cc.Component {
                 else
                 {
                     this.node.parent.scaleY = - this.node.parent.scaleY;
+                   
                 }
                 break;
             //垂直镜像                
@@ -225,18 +198,20 @@ export default class BlockControl extends cc.Component {
     }
 
     onCollisionEnter(other){
-
+        if(other.node.getComponent(cc.BoxCollider).tag==1){ 
+            this.isUsed=true;
+            console.log(other.node.children[0].children[0].getComponent(cc.Label).string);
+            this.node.parent.parent.position = other.node.position; 
+            
+        }
     }
-
-    //回到
+    //回到原点
     backStartPos(){
-        this.node.parent.parent.setParent(cc.director.getScene().children[2].children[1].children[0]);
         let originX = this.node.parent.parent.getComponent(BlockContainer).startPos[0][0];
         let originY = this.node.parent.parent.getComponent(BlockContainer).startPos[0][1];
         this.node.parent.parent.setPosition(originX,originY);
+        this.node.parent.parent.setParent(cc.director.getScene().children[2].children[1].children[0]);
     }
-
-
 
     start () {
         
