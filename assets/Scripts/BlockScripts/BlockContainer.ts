@@ -12,6 +12,7 @@ export default class BlockContainer extends cc.Component {
     
     startPos:[number,number,boolean][]=[];
 
+    bindPos:cc.Vec2 = null;
     
     start () {
         console.log(this.startPos);

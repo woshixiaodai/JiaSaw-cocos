@@ -31,6 +31,7 @@ export default class BlockControl extends cc.Component {
         this.currentY =  this.node.parent.position.y;
         this.node.on(cc.Node.EventType.TOUCH_START,(e)=>{
             console.log('block',this.node.parent.parent.x,this.node.parent.parent.y);
+            console.log('block2',this.node.parent.x,this.node.parent.parent.y);
             
             this.holdClick = true;
             this.holdTimeEclipse = 0;
@@ -39,15 +40,16 @@ export default class BlockControl extends cc.Component {
             //将一个点转换到节点 (局部) 坐标系，并加上锚点的坐标。 也就是说返回的坐标是相对于节点包围盒左下角的坐标。 
             //将鼠标位置转换为这个父物体下得局部坐标作为偏移量
             this.offsetVec=this.node.parent.parent.convertToNodeSpaceAR(e.getLocation());
-            
-            
         },this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE,(e)=>{
+            this.node.parent.parent.getComponent(BlockContainer).bindPos=null;
             this.isMoving = true;
             this.move(e);
         },this)
 
         this.node.on(cc.Node.EventType.TOUCH_END,(e)=>{
+            console.log('mouse up',this.node.parent.parent.position);
+            
             this.holdClick=false;
             //这里检测是没有移动还是移动了位置,再由下一个判断是否进入长按
             if(this.node.parent.position.x!=this.currentX&&this.node.parent.position.y!=this.currentY){
@@ -66,7 +68,12 @@ export default class BlockControl extends cc.Component {
             //开始记录时间
             this.holdTimeEclipse=0;
             this.isMoving = false;
-            this.backStartPos();
+                if(this.node.parent.parent.getComponent(BlockContainer).bindPos!=null){
+                    this.node.parent.parent.setPosition(this.node.parent.parent.getComponent(BlockContainer).bindPos);
+                    this.node.parent.parent.getComponent(BlockContainer).bindPos=null;
+                }else{
+                    this.backStartPos();
+                }
         },this);
        
     }
@@ -75,7 +82,6 @@ export default class BlockControl extends cc.Component {
     btn_status(e,status){
         if(status == 'short')
         {
-            console.log(this.hold_one_click)
             this.hold_one_click ++;
             setTimeout(() => {
                 //单击&双击都关闭菜单
@@ -111,6 +117,7 @@ export default class BlockControl extends cc.Component {
         //减去当前节点的位置，让父物体跟随鼠标
         // console.log(this.node.parent.scaleX,this.node.parent.scaleY);
         this.node.parent.parent.setPosition(location.x-this.offsetVec.x,location.y-this.offsetVec.y);
+        
         // let res =  cc.director.getPhysicsManager().rayCast(this.node.getPosition(),cc.v2(this.node.x,this.node.y),cc.RayCastType.Closest);
         // console.log(this.node.name);
     }
@@ -189,22 +196,43 @@ export default class BlockControl extends cc.Component {
         }
     }
 
-    //检测地图
+    //检测地图++
     addCollider(){
-        for(let block of this.node.parent.children)
-        {
-            block.addComponent(cc.BoxCollider);
-        }
+        this.node.addComponent(cc.BoxCollider);
+        let boxCollider = this.node.getComponent(cc.BoxCollider);
+        boxCollider.size= cc.size(50,50);
     }
 
     onCollisionEnter(other){
+       this.isUsed = true
+    }
+    onCollisionStay(other){
         if(other.node.getComponent(cc.BoxCollider).tag==1){ 
             this.isUsed=true;
-            console.log(other.node.children[0].children[0].getComponent(cc.Label).string);
-            this.node.parent.parent.position = other.node.position; 
-            
+            // let movePos =  this.node.parent.convertToNodeSpaceAR(this.node.parent.parent.position);
+            // console.log(movePos);
+            if(this.node.name == '1'){
+                const worldPos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                if(other.node.position.x-worldPos.x>=-25&&other.node.position.x-worldPos.x<=25&&other.node.position.y-worldPos.y>=-25&&other.node.position.x-worldPos.y<=25){
+                    // console.log(other.node.name);
+                    // console.log(this.node.parent.parent.x+other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x-120);
+                    // console.log(other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).y);
+                    let offsetX =  this.node.parent.parent.x-other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                    let offsetY = this.node.parent.parent.y-other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).y;
+                    console.log(offsetX);
+                    console.log(offsetY);
+                    this.node.parent.parent.getComponent(BlockContainer).bindPos = 
+                    cc.v2(other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x+offsetX,other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).y+offsetY);
+                    // this.node.parent.parent.getComponent(BlockContainer).bindPos = cc.v2(other.node.position.x+47,other.node.position.y+38)
+                    // console.log(other.node.position);
+                }
+            }
         }
     }
+    onCollisionExit(other){
+        this.isUsed = false;
+     }
+
     //回到原点
     backStartPos(){
         let originX = this.node.parent.parent.getComponent(BlockContainer).startPos[0][0];

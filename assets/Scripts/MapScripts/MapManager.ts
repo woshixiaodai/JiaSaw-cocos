@@ -1,3 +1,4 @@
+import MapControl from "./MapControl";
 
 
 const {ccclass, property} = cc._decorator;
@@ -74,6 +75,7 @@ export default class MapManager extends cc.Component {
                 let mapBlock = cc.instantiate(this.MapObj);
                 //设置地图name
                 mapBlock.name =x+"_"+y;
+                
                 //设置父对象
                 mapBlock.parent = scene;
                 //指定生成位置
@@ -95,6 +97,12 @@ export default class MapManager extends cc.Component {
                 currentIndex++;
                 //添加地图块对象
                 this.MapObjList[x * this.VerticalMapNumber + y] = mapBlock;
+                if(mapBlock.name=='6_0'){
+                    console.log(mapBlock.position);
+                    console.log(mapBlock.children[0].children[0].getComponent(cc.Label).string);
+                    console.log(mapBlock);
+                }
+                mapBlock.addComponent(MapControl);
             }
         }
     }
