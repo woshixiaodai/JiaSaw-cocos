@@ -10,6 +10,10 @@ export default class MapManager extends cc.Component {
     @property(cc.Prefab)
     MapObj:cc.Prefab = null; 
 
+    @property(cc.Node)
+    bg:cc.Node = null;
+
+
     //所有时间地图块
     MapObjList:cc.Node[] =[];  
 
@@ -28,6 +32,10 @@ export default class MapManager extends cc.Component {
     ];
 
 
+    //
+    checkText:string[] = new Array(56);
+
+
     //纵向个数
     VerticalMapNumber:number = 8;
     //横向个数
@@ -38,6 +46,10 @@ export default class MapManager extends cc.Component {
     start () {
         this.NowDate = this.getNowDate();
         this.generateMap();
+        this.schedule(()=>{
+            console.log(
+             this.checkWeek());
+        },3)
     }
 
 
@@ -54,7 +66,6 @@ export default class MapManager extends cc.Component {
             week=7;
         }
         let now :string = Month+"月"+Day+"日"+"周"+week;
-        console.log(now);
         return now;
     }
     //生成地图
@@ -71,13 +82,12 @@ export default class MapManager extends cc.Component {
                     this.MapObjList[x * this.VerticalMapNumber + y] = null;
                     break;
                 }
-                let scene = cc.director.getScene();
                 let mapBlock = cc.instantiate(this.MapObj);
                 //设置地图name
                 mapBlock.name =x+"_"+y;
                 
                 //设置父对象
-                mapBlock.parent = scene;
+                mapBlock.parent = this.bg;
                 //指定生成位置
                 if(x==0)
                 {
@@ -105,8 +115,138 @@ export default class MapManager extends cc.Component {
                 mapBlock.addComponent(MapControl);
             }
         }
+      
     }
     update (dt) {
+        // // this.checkWin();
+        // console.log(this.checkWeek());
         
     }
+
+
+    checkWin(){
+        let winDate  =  
+        this.checkMonth()+
+        this.checkDayOne()+
+        this.checkDayTwo()+
+        this.checkDayThree()+
+        this.checkWeek();
+        if(winDate == this.NowDate)
+        {
+            console.log('you win!');
+        }
+        console.log(winDate);
+    }
+
+
+    checkWeek()
+    {
+        let col = 4;
+        let row = 2;
+        for (let i = 0; i != row; i++)
+        {
+            for (let j = 0; j != col; j++)
+            {
+                console.log(i * this.VerticalMapNumber + j);
+                if (i == 0 && j == 0)
+                {
+                    this.checkText[i * this.VerticalMapNumber + j] = "";
+                }
+                else
+                {
+                if (this.MapObjList[i] != null &&  this.MapObjList[i *  this.VerticalMapNumber + j].getComponent(MapControl).isUsed == false)
+                    {
+                        let winWeek  = this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string;
+                        return winWeek;
+                    }
+                }
+                // console.log(this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string);
+                
+            }
+        }
+        return null;
+    }
+
+    checkMonth()
+    {
+        let col = 8;
+        let row = 3;
+        
+        for (let i = 0; i < row; i++)
+        {
+            for (let j = 4; j < col; j++)
+            {
+                if (this.MapObjList[i] != null &&  this.MapObjList[i *  this.VerticalMapNumber + j].getComponent(MapControl).isUsed == false)
+                {
+                    let winMonth  = this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string;
+                    return winMonth;
+                }
+            }
+        }
+        return null;
+    }
+
+    checkDayOne()
+    {
+        let col = 4;
+        let row = 3;
+        for (let i = 2; i < row; i++)
+        {
+            for (let j = 0; j < col; j++)
+            {
+                if (this.MapObjList[i] != null &&  this.MapObjList[i *  this.VerticalMapNumber + j].getComponent(MapControl).isUsed == false)
+                {
+                    let winDay  = this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string;
+                    return winDay;
+                }
+                   
+            }
+        }
+        return null;
+    }
+
+    checkDayTwo()
+    {
+        let row = 6;
+        let col = 8;
+        for (let i = 3; i < row; i++)
+        {
+            for (let j = 0; j < col; j++)
+            {
+                if (this.MapObjList[i] != null &&  this.MapObjList[i *  this.VerticalMapNumber + j].getComponent(MapControl).isUsed == false)
+                {
+                    let winDay  = this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string;
+                    return winDay;
+                }
+                  
+            }
+        }
+        return null;
+    }
+
+    checkDayThree()
+    {
+        let row = 7;
+        let col = 3;
+        for (let i = 6; i < row; i++)
+        {
+            for (let j = 0; j < col; j++)
+            {
+                if (this.MapObjList[i] != null &&  this.MapObjList[i *  this.VerticalMapNumber + j].getComponent(MapControl).isUsed == false)
+                {
+
+                    let winDay  = this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string;
+                    return winDay;
+                }
+            }
+        }
+        return null;
+    }
+
+
+
+
+
+
+    
 }

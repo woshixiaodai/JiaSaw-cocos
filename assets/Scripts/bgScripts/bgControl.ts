@@ -8,26 +8,14 @@
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class BlockContainer extends cc.Component {
-    
-    //方块起始位置
-    startPos:[number,number,boolean][]=[];
+export default class NewClass extends cc.Component {
 
-    //绑定的地图块
-    bindPos:cc.Vec2 = null;
-    
-    //激活边框
-    hadBorder:boolean = false;
+    // LIFE-CYCLE CALLBACKS:
 
-    //是否已完成移动
-    moveFinished:boolean = false;
-    //是否展示菜单了
-    showMenuStatus:boolean = false;
-    //
-    canDown:boolean =false;
+    // onLoad () {}
 
     start () {
-        
+       
     }
 
     // update (dt) {}

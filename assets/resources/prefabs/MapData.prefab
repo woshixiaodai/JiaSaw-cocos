@@ -24,14 +24,14 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 9
+        "__id__": 8
       },
       {
-        "__id__": 10
+        "__id__": 9
       }
     ],
     "_prefab": {
-      "__id__": 11
+      "__id__": 10
     },
     "_opacity": 255,
     "_color": {
@@ -96,13 +96,10 @@
     "_components": [
       {
         "__id__": 6
-      },
-      {
-        "__id__": 7
       }
     ],
     "_prefab": {
-      "__id__": 8
+      "__id__": 7
     },
     "_opacity": 255,
     "_color": {
@@ -133,8 +130,8 @@
         0,
         0,
         1,
-        0.95,
-        0.95,
+        0.9,
+        0.9,
         1
       ]
     },
@@ -292,31 +289,6 @@
     "_id": ""
   },
   {
-    "__type__": "cc.RigidBody",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "_type": 0,
-    "_allowSleep": false,
-    "_gravityScale": 1,
-    "_linearDamping": 0,
-    "_angularDamping": 0,
-    "_linearVelocity": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_angularVelocity": 0,
-    "_fixedRotation": false,
-    "enabledContactListener": false,
-    "bullet": false,
-    "awakeOnLoad": true,
-    "_id": ""
-  },
-  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -370,13 +342,13 @@
     "tag": 1,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+      "x": -0.1,
+      "y": 0.1
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 50,
-      "height": 50
+      "width": 31.2,
+      "height": 30.9
     },
     "_id": ""
   },

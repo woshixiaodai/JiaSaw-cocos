@@ -6,13 +6,10 @@ const {ccclass, property} = cc._decorator;
 export default class BlockManager extends cc.Component {
 
 
-    //记录拼图块初始原位置
-    status:number //0:初始、1:
     
     onLoad () {
         
     }
-
     start () {
         for(let blockManger of this.node.children){
             //存储初始点位 
