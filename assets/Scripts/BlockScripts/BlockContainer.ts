@@ -27,7 +27,15 @@ export default class BlockContainer extends cc.Component {
     canDown:boolean =false;
 
     start () {
-        
+        // const borderNode = new cc.Node(); // 创建边框节点
+        // borderNode.name = 'border_'+this.node.name;
+        // const graphics = borderNode.addComponent(cc.Graphics); // 添加 cc.Graphics 组件
+        // graphics.lineWidth = 2; // 设置线宽
+        // graphics.strokeColor = cc.Color.BLACK; // 设置描边颜色
+        // graphics.rect(-this.node.width/2, -this.node.height/2, this.node.width, this.node.height); // 绘制矩形
+        // graphics.stroke(); // 绘制边框
+        // borderNode.setPosition(cc.v2(0,0)); // 设置位置与原节点相同
+        // borderNode.parent = this.node; // 将边框节点设置为原节点的子节点
     }
 
     // update (dt) {}

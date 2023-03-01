@@ -1,6 +1,6 @@
 import MapControl from "./MapControl";
 
-
+import Timer from "../TimerScripts/Timer";
 const {ccclass, property} = cc._decorator;
 
 @ccclass
@@ -10,9 +10,17 @@ export default class MapManager extends cc.Component {
     @property(cc.Prefab)
     MapObj:cc.Prefab = null; 
 
+    //获取背景
     @property(cc.Node)
     bg:cc.Node = null;
 
+    //获取定时器
+    @property(cc.Node)
+    time: cc.Node = null;
+
+    //获取胜利遮罩
+    @property(cc.Node)
+    winMask:cc.Node= null;
 
     //所有时间地图块
     MapObjList:cc.Node[] =[];  
@@ -32,24 +40,20 @@ export default class MapManager extends cc.Component {
     ];
 
 
-    //
+    //存储生成的时间
     checkText:string[] = new Array(56);
-
 
     //纵向个数
     VerticalMapNumber:number = 8;
     //横向个数
     HorizontalMap:number= 7;
-
+    //生成地图块的起始点位
     startPos:number[] = [180,1100]
 
     start () {
         this.NowDate = this.getNowDate();
+        console.log(this.NowDate);
         this.generateMap();
-        this.schedule(()=>{
-            console.log(
-             this.checkWeek());
-        },3)
     }
 
 
@@ -123,7 +127,7 @@ export default class MapManager extends cc.Component {
         
     }
 
-
+    //检测是否通关
     checkWin(){
         let winDate  =  
         this.checkMonth()+
@@ -133,12 +137,15 @@ export default class MapManager extends cc.Component {
         this.checkWeek();
         if(winDate == this.NowDate)
         {
+             //重新加载游戏时，将上一个场景的定时器清除
+            clearInterval(this.time.getComponent(Timer).timerInterval)
+            this.winMask.active = true;
             console.log('you win!');
         }
         console.log(winDate);
+
+
     }
-
-
     checkWeek()
     {
         let col = 4;
@@ -147,7 +154,7 @@ export default class MapManager extends cc.Component {
         {
             for (let j = 0; j != col; j++)
             {
-                console.log(i * this.VerticalMapNumber + j);
+                // console.log(i * this.VerticalMapNumber + j);
                 if (i == 0 && j == 0)
                 {
                     this.checkText[i * this.VerticalMapNumber + j] = "";
@@ -160,11 +167,9 @@ export default class MapManager extends cc.Component {
                         return winWeek;
                     }
                 }
-                // console.log(this.MapObjList[i * this.VerticalMapNumber + j].children[0].children[0].getComponent(cc.Label).string);
-                
             }
         }
-        return null;
+        return "";
     }
 
     checkMonth()
@@ -183,7 +188,7 @@ export default class MapManager extends cc.Component {
                 }
             }
         }
-        return null;
+        return"" ;
     }
 
     checkDayOne()
@@ -202,7 +207,7 @@ export default class MapManager extends cc.Component {
                    
             }
         }
-        return null;
+        return "";
     }
 
     checkDayTwo()
@@ -221,7 +226,7 @@ export default class MapManager extends cc.Component {
                   
             }
         }
-        return null;
+        return"";
     }
 
     checkDayThree()
@@ -240,7 +245,7 @@ export default class MapManager extends cc.Component {
                 }
             }
         }
-        return null;
+        return "";
     }
 
 

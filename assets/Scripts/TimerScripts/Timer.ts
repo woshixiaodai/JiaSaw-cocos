@@ -8,7 +8,7 @@
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class Timer extends cc.Component {
 
     @property(cc.Label)
     label: cc.Label = null;
@@ -17,11 +17,12 @@ export default class NewClass extends cc.Component {
     //一秒
     speed:number = 1;
 
+    timerInterval;
     start () {
-        setInterval(() => {
+         this.timerInterval = setInterval(() => {
             this.time += this.speed;
             this.setTime();
-          }, 1000);
+        }, 1000);
     }
 
     setTime(){
