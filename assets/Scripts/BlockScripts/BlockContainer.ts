@@ -15,6 +15,7 @@ export default class BlockContainer extends cc.Component {
 
     //绑定的地图块
     bindPos:cc.Vec2 = null;
+
     
     //激活边框
     hadBorder:boolean = false;

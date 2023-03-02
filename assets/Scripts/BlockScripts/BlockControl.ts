@@ -36,6 +36,8 @@ export default class BlockControl extends cc.Component {
         //开启碰撞检测
         cc.director.getCollisionManager().enabled = true;
         this.addCollider();
+        //获取页面canvas
+        let canvas = this.findNodeInChildren(cc.director.getScene(),'Canvas');
         // this.node.parent.is3DNode = true;
         this.currentX =  this.node.parent.position.x;
         this.currentY =  this.node.parent.position.y;
@@ -47,8 +49,11 @@ export default class BlockControl extends cc.Component {
             //将一个点转换到节点 (局部) 坐标系，并加上锚点的坐标。 也就是说返回的坐标是相对于节点包围盒左下角的坐标。 
             //将鼠标位置转换为这个父物体下得局部坐标作为偏移量
             this.offsetVec=this.node.parent.parent.convertToNodeSpaceAR(e.getLocation());
+            console.log(this.offsetVec.x,'--',this.offsetVec.y);
+            
         },this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE,(e)=>{
+            this.node.parent.parent.getComponent(BlockContainer).moveFinished = false;
             this.isMoving = true;
             this.move(e);
             this.isMove = true;
@@ -85,11 +90,14 @@ export default class BlockControl extends cc.Component {
                         this.backStartPos();
                     }
                 },50)
-                this.node.parent.parent.setPosition(this.node.parent.parent.getComponent(BlockContainer).bindPos);
+                let bindPos = this.node.parent.parent.getComponent(BlockContainer).bindPos;
+                this.node.parent.parent.setPosition(bindPos);
+                if(!this.node.parent.parent.getComponent(BlockContainer).moveFinished){
+                    let label = this.findNodeInChildren(cc.director.getScene(),'stepCount');
+                    label.getComponent(cc.Label).string = (parseInt(label.getComponent(cc.Label).string)+1)+"";
+                }
                 this.node.parent.parent.getComponent(BlockContainer).moveFinished = true;
-                let label = this.findNodeInChildren(cc.director.getScene(),'stepCount');
-                label.getComponent(cc.Label).string = (parseInt(label.getComponent(cc.Label).string)+1)+"";
-                let canvas = this.findNodeInChildren(cc.director.getScene(),'Canvas');
+                //调用一次检测是否胜利
                 canvas.getComponent(MapManager).checkWin();
                 this.node.parent.parent.getComponent(BlockContainer).bindPos=null;
             }else{
@@ -100,8 +108,7 @@ export default class BlockControl extends cc.Component {
                     let label = this.findNodeInChildren(cc.director.getScene(),'stepCount');
                     label.getComponent(cc.Label).string = (parseInt(label.getComponent(cc.Label).string)+1)+"";
                 }
-                // let labelNode = this.findNodeInChildren(cc.director.getScene(),'status');
-                // labelNode.getComponent(cc.Label).string = this.node.parent.parent.getComponent(BlockContainer).canDown+'_'+this.node.parent.parent.getComponent(BlockContainer).bindPos;
+                
                 this.backStartPos();
                 this.isMove = false;
             }
@@ -117,6 +124,19 @@ export default class BlockControl extends cc.Component {
             this.close_menu()
         },this)
     }
+
+
+    
+    //检测地图++
+    addCollider(){
+        this.node.addComponent(cc.BoxCollider);
+        let boxCollider = this.node.getComponent(cc.BoxCollider);
+        boxCollider.size= cc.size(45,45);
+        boxCollider.tag=2;
+        boxCollider.offset=cc.v2(0,0);
+    }
+
+    //移动拼图
     move(e){
         //移动的时候让拼图块离开scrollView
         this.node.parent.parent.setParent(cc.director.getScene());
@@ -149,16 +169,19 @@ export default class BlockControl extends cc.Component {
                 {
                     console.log('short');
                     this.hold_one_click = 0;
-                    this.close_menu()
+                    this.close_menu();
+                    this.node.parent.parent.getComponent(BlockContainer).showMenuStatus= false;
                 } 
                 else if(this.hold_one_click == 2)
                 {
                     this.close_menu();
-                    console.log('double');
+                    console.log('double','showMenuStatus',this.node.parent.parent.getComponent(BlockContainer).showMenuStatus);
                     this.hold_one_click = 0;
                     if(this.node.parent.parent.getComponent(BlockContainer).showMenuStatus){
                         this.close_menu();
+                        this.node.parent.parent.getComponent(BlockContainer).showMenuStatus= false;
                     }else{
+                        console.log('show menu---');
                         this.show_menu();
                     }
                 }              
@@ -192,28 +215,6 @@ export default class BlockControl extends cc.Component {
         }
     }
 
-    //旋转物体
-    // rotation(_,angle:string){
-    //     //通过子组件操作父组件旋转翻转
-    //     switch (angle) {
-    //         //逆时针90
-    //         case "0":
-    //             this.node.parent.parent.angle += 90;
-    //             break;
-    //         //逆时针180
-    //         case "1":
-    //             this.node.parent.parent.angle += 180;
-    //             break;
-    //         //水平镜像
-    //         case "2":
-    //             this.horizontalFlip();
-    //             break;
-    //         //垂直镜像                
-    //         case "3":
-    //             this.verticalFlip();
-    //             break;                
-    //     }
-    // }
 
     
     //旋转物体
@@ -243,13 +244,6 @@ export default class BlockControl extends cc.Component {
 
 
     //水平翻转
-    // horizontalFlip() {
-    //     if(this.node.parent.parent.angle % 180 == 0) {
-    //         this.node.parent.parent.scaleX = -this.node.parent.parent.scaleX;
-    //     } else {
-    //         this.node.parent.parent.scaleY = -this.node.parent.parent.scaleY;
-    //     }
-    // }
     horizontalFlip() {
         if(this.node.parent.angle % 180 == 0) {
             this.node.parent.scaleX = -this.node.parent.scaleX;
@@ -259,13 +253,6 @@ export default class BlockControl extends cc.Component {
     }
 
     //垂直翻转
-    // verticalFlip() {
-    //     if(this.node.parent.parent.angle % 180 == 0) {
-    //         this.node.parent.parent.scaleY = -this.node.parent.parent.scaleY;
-    //     } else {
-    //         this.node.parent.parent.scaleX = -this.node.parent.parent.scaleX;
-    //     }
-    // }
     verticalFlip() {
         if(this.node.parent.angle % 180 == 0) {
             this.node.parent.scaleY = -this.node.parent.scaleY;
@@ -325,7 +312,6 @@ export default class BlockControl extends cc.Component {
     }
     //关闭菜单
     close_menu(){
-        this.node.parent.parent.getComponent(BlockContainer).showMenuStatus= false;
         let Menu = cc.director.getScene().children[5].children[0];
         Menu.active = false;
         for(let i=1;i<12;i++){
@@ -345,17 +331,6 @@ export default class BlockControl extends cc.Component {
     }
 
 
-
-
-    //检测地图++
-    addCollider(){
-        this.node.addComponent(cc.BoxCollider);
-        let boxCollider = this.node.getComponent(cc.BoxCollider);
-        boxCollider.size= cc.size(45,45);
-        boxCollider.tag=2;
-        boxCollider.offset=cc.v2(0,0);
-    }
-
     onCollisionStay(other){
           //判断是否在背景上
           if(other.node.getComponent(cc.BoxCollider).tag !=2 ){
@@ -373,8 +348,6 @@ export default class BlockControl extends cc.Component {
                     let offsetY =  this.node.parent.parent.y-worldPos.y;
                     this.node.parent.parent.getComponent(BlockContainer).bindPos = 
                     cc.v2(other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x+offsetX,other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).y+offsetY);
-                    let labelNode = this.findNodeInChildren(cc.director.getScene(),'status');
-                    labelNode.getComponent(cc.Label).string = other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x+offsetX,other.node.convertToWorldSpaceAR(cc.Vec2.ZERO).y+offsetY;
                 }
             }
         }
